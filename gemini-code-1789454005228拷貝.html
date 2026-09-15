@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資管系特約商店地圖</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-12">
+
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div>
+                <h1 class="text-lg md:text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-store"></i> 資管系特約商店
+                </h1>
+                <p class="text-xs text-indigo-200 mt-0.5">即時優惠與地理位置全覽</p>
+            </div>
+            
+            <!-- 視圖切換按鈕 -->
+            <div class="flex items-center gap-2">
+                <div class="bg-indigo-800/80 p-1 rounded-xl flex gap-1 text-xs font-bold">
+                    <button id="viewListBtn" onclick="switchView('list')" class="px-3 py-1.5 rounded-lg bg-white text-indigo-900 shadow">
+                        <i class="fa-solid fa-list mr-1"></i>列表
+                    </button>
+                    <button id="viewMapBtn" onclick="switchView('map')" class="px-3 py-1.5 rounded-lg text-indigo-100 hover:text-white">
+                        <i class="fa-solid fa-map-location-dot mr-1"></i>地圖
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 mt-4">
+        
+        <!-- 1. 列表視圖區域 (List View) -->
+        <div id="listViewSection">
+            <!-- 搜尋欄位 -->
+            <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 mb-4 flex gap-3">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400"></i>
+                    <input type="text" id="searchInput" oninput="renderStores()" placeholder="搜尋店家名稱、優惠關鍵字..." 
+                           class="w-full pl-9 pr-4 py-1.5 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+            </div>
+
+            <!-- 區域分頁籤 -->
+            <div class="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none" id="locationTabs">
+                <button onclick="filterLocation('ALL')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-indigo-600 text-white shadow-sm">全部店家</button>
+                <button onclick="filterLocation('新光路一段')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">新光路一段</button>
+                <button onclick="filterLocation('大門左轉')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">大門左轉</button>
+                <button onclick="filterLocation('大門右轉')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">大門右轉</button>
+                <button onclick="filterLocation('ㄆㄨㄣ街')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">ㄆㄨㄣ街</button>
+                <button onclick="filterLocation('後山')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">後山</button>
+            </div>
+
+            <!-- 店家卡片列表 -->
+            <div id="storeGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- 2. 地圖全覽視圖區域 (Google My Maps 嵌入版) -->
+        <div id="mapViewSection" class="hidden space-y-4">
+            <div class="bg-indigo-50 border border-indigo-100 p-3 rounded-xl flex justify-between items-center text-xs text-indigo-900">
+                <span><i class="fa-solid fa-map-marked-alt mr-1"></i> 直接點擊地圖上的地標，即可查看真實 Google 地圖位置與資管系專屬優惠！</span>
+            </div>
+    
+            <div class="w-full h-[600px] rounded-2xl overflow-hidden shadow-md border border-slate-200">
+                <iframe 
+                    src="https://www.google.com/maps/d/embed?mid=19SNNMSp_0NhiVM00-DYnxs1RSk4gOAs&ehbc=2E312F"
+                    width="100%" 
+                    height="100%" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy">
+                </iframe>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal: 店家詳細資訊 -->
+    <div id="detailModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+            <div class="bg-indigo-600 text-white p-5 flex justify-between items-start">
+                <div>
+                    <span id="modalLocationBadge" class="bg-indigo-800 text-indigo-100 text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
+                    <h3 id="modalTitle" class="text-xl font-bold mt-1"></h3>
+                </div>
+                <button onclick="closeModal()" class="text-white/80 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-gift text-indigo-500 mt-1"></i>
+                    <div>
+                        <div class="text-xs text-slate-400 font-bold">資管系專屬優惠</div>
+                        <div id="modalDiscount" class="text-sm font-bold text-indigo-900 bg-indigo-50 p-2.5 rounded-lg border border-indigo-100 mt-1"></div>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-clock text-indigo-500 mt-1"></i>
+                    <div>
+                        <div class="text-xs text-slate-400 font-bold">營業時間</div>
+                        <div id="modalHours" class="text-sm text-slate-700 mt-0.5"></div>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <i class="fa-solid fa-map-pin text-indigo-500 mt-1"></i>
+                    <div>
+                        <div class="text-xs text-slate-400 font-bold">地點區域</div>
+                        <div id="modalAddress" class="text-sm text-slate-700 mt-0.5"></div>
+                        <a id="modalMapLink" href="#" target="_blank" class="inline-flex items-center gap-1 text-xs text-indigo-600 font-bold hover:underline mt-2">
+                            <i class="fa-solid fa-location-arrow"></i> 開啟 Google 地圖單獨導航
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-3 text-right border-t border-slate-100">
+                <button onclick="closeModal()" class="px-4 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-300">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const stores = [
+            { id: "1", name: "Mr. Light 輕食先生", location: "新光路一段", discount: "點餐後加 10 元可加價購飲料（原價 39 元）", hours: "週一至週日 11:00–20:00" },
+            { id: "2", name: "里克德義廚房", location: "新光路一段", discount: "主餐折 10 元", hours: "週二至週五 11:30–14:30、17:00–20:30（週一、六、日公休）" },
+            { id: "3", name: "小靖子可麗餅", location: "新光路一段", discount: "一個折 5 元", hours: "週一至週五 14:00–20:00（週六、日公休）" },
+            { id: "4", name: "政大茶亭", location: "大門左轉", discount: "點冰沙送珍珠", hours: "週一至週日 10:20–21:30" },
+            { id: "5", name: "Come See Pizza", location: "大門左轉", discount: "滿 1,000 元打 95 折，滿 3,000 元打 9 折", hours: "週一、週三至週日 11:30–20:30；週二 09:00–17:00" },
+            { id: "6", name: "大隻佬 食堂", location: "大門左轉", discount: "結帳 95 折", hours: "週一至週日 11:00–23:00" },
+            { id: "7", name: "提洛斯義式廚房", location: "大門右轉", discount: "內用全品項折 5 元（烤餅例外）", hours: "週一至週日 11:30–14:00、16:30–20:00" },
+            { id: "8", name: "華越美食", location: "大門右轉", discount: "折 5 元", hours: "週一至週六 11:00–14:00、17:00–20:00（週日公休）" },
+            { id: "9", name: "富美豚骨麻辣燙-政大店", location: "大門右轉", discount: "滿 150 元送 10-30 元飲料", hours: "週一至週五 11:30–15:00、16:30–20:30（週六、日公休）" },
+            { id: "10", name: "血盅紅 台北政大", location: "ㄆㄨㄣ街", discount: "點鍋類/鍋燒送兩片肉", hours: "週一至週五 11:00–20:00；週六 11:00–14:00、16:30–19:00" },
+            { id: "11", name: "Warong Kita 珍妹麵店", location: "ㄆㄨㄣ街", discount: "滿 100 元以上折 5 元（100 元以內無折扣）", hours: "週一至週五 11:00–14:00、16:30–20:00" },
+            { id: "12", name: "原丼力", location: "ㄆㄨㄣ街", discount: "全品項折 5 元", hours: "週一至週五 11:00–14:00、16:30–19:30" },
+            { id: "13", name: "飛捷廣告印刷有限公司", location: "ㄆㄨㄣ街", discount: "消費享 6 折", hours: "週一至週五 09:00–21:00；週六日 10:00–20:00" },
+            { id: "14", name: "匠記日式食堂", location: "後山", discount: "內用滿 100 元送 15 元小料", hours: "週一至週五、週日 17:00–00:00（週六公休）" },
+            { id: "15", name: "嘗香聚", location: "後山", discount: "滿 100 元送小杯飲料", hours: "19:00–10:00（宵夜至次日早晨，週三公休）" },
+            { id: "16", name: "箸拉麵", location: "後山", discount: "免費加一球麵", hours: "11:30–14:30、17:30–20:30（週三公休）" }
+        ];
+
+        let selectedLocation = 'ALL';
+
+        function switchView(view) {
+            const listSec = document.getElementById('listViewSection');
+            const mapSec = document.getElementById('mapViewSection');
+            const listBtn = document.getElementById('viewListBtn');
+            const mapBtn = document.getElementById('viewMapBtn');
+
+            if (view === 'list') {
+                listSec.classList.remove('hidden');
+                mapSec.classList.add('hidden');
+                listBtn.className = "px-3 py-1.5 rounded-lg bg-white text-indigo-900 shadow";
+                mapBtn.className = "px-3 py-1.5 rounded-lg text-indigo-100 hover:text-white";
+            } else {
+                listSec.classList.add('hidden');
+                mapSec.classList.remove('hidden');
+                mapBtn.className = "px-3 py-1.5 rounded-lg bg-white text-indigo-900 shadow";
+                listBtn.className = "px-3 py-1.5 rounded-lg text-indigo-100 hover:text-white";
+            }
+        }
+
+        function renderStores() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const grid = document.getElementById('storeGrid');
+            grid.innerHTML = '';
+
+            const filtered = stores.filter(s => {
+                const matchesLoc = selectedLocation === 'ALL' || s.location === selectedLocation;
+                const matchesSearch = s.name.toLowerCase().includes(query) || s.discount.toLowerCase().includes(query);
+                return matchesLoc && matchesSearch;
+            });
+
+            filtered.forEach(store => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition border border-slate-200 flex flex-col justify-between cursor-pointer";
+                card.onclick = () => openDetail(store.id);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded">${store.location}</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-base mt-1.5">${store.name}</h3>
+                        <p class="text-xs text-indigo-600 font-semibold bg-indigo-50 p-2 rounded-lg mt-2 inline-block w-full">
+                            <i class="fa-solid fa-gift mr-1"></i>${store.discount}
+                        </p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 flex justify-between items-center">
+                        <span class="truncate max-w-[180px]"><i class="fa-regular fa-clock mr-1"></i>${store.hours}</span>
+                        <span class="text-indigo-500 font-medium shrink-0">詳情 <i class="fa-solid fa-chevron-right text-[10px]"></i></span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterLocation(loc) {
+            selectedLocation = loc;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.innerText.includes(loc) || (loc === 'ALL' && btn.innerText.includes('全部'))) {
+                    btn.className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-indigo-600 text-white shadow-sm";
+                } else {
+                    btn.className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-slate-200 hover:bg-slate-50";
+                }
+            });
+            renderStores();
+        }
+
+        function openDetail(id) {
+            const store = stores.find(s => s.id === id);
+            if (!store) return;
+
+            document.getElementById('modalTitle').innerText = store.name;
+            document.getElementById('modalLocationBadge').innerText = store.location;
+            document.getElementById('modalDiscount').innerText = store.discount;
+            document.getElementById('modalHours').innerText = store.hours;
+            document.getElementById('modalAddress').innerText = `政治大學周邊商圈 (${store.location})`;
+            
+            const mapQuery = encodeURIComponent(store.name + " 政治大學");
+            document.getElementById('modalMapLink').href = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
+
+            document.getElementById('detailModal').classList.remove('hidden');
+            document.getElementById('detailModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+            document.getElementById('detailModal').classList.remove('flex');
+        }
+
+        renderStores();
+    </script>
+</body>
+</html>
