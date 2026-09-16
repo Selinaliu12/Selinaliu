@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>政大資管系特約商店地圖</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-sky-50 text-slate-800 min-h-screen pb-12 relative">
+
+    <!-- Header 頂部導覽列 -->
+    <header class="bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-600 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 py-2.5 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <!-- Logo 區塊 -->
+                <div class="w-10 h-10 rounded-full border-2 border-amber-300 overflow-hidden shadow-inner shrink-0 bg-white">
+                    <img src="頭貼.jpg" alt="政大資管 Logo" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <h1 class="text-base md:text-lg font-bold tracking-wide flex items-center gap-1.5 text-white">
+                        政大資管特約商店 <span class="text-amber-300 text-xs font-black bg-white/20 px-1.5 py-0.5 rounded-full">★ MIS</span>
+                    </h1>
+                    <p class="text-[11px] text-sky-100">NCCU MIS Student Association</p>
+                </div>
+            </div>
+            
+            <div class="bg-sky-800/40 backdrop-blur-sm p-1 rounded-xl flex gap-1 text-xs font-bold border border-white/20">
+                <button id="viewListBtn" onclick="switchView('list')" class="px-3 py-1.5 rounded-lg bg-amber-400 text-slate-900 shadow transition">
+                    <i class="fa-solid fa-list mr-1"></i>列表
+                </button>
+                <button id="viewMapBtn" onclick="switchView('map')" class="px-3 py-1.5 rounded-lg text-white hover:bg-white/10 transition">
+                    <i class="fa-solid fa-map-location-dot mr-1"></i>地圖
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 mt-5">
+        <!-- 1. 列表視圖區域 (List View) -->
+        <div id="listViewSection">
+            <!-- 搜尋欄位 -->
+            <div class="bg-white p-3 rounded-2xl shadow-sm border border-sky-100 mb-4 flex gap-3">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-sky-400"></i>
+                    <input type="text" id="searchInput" oninput="renderStores()" placeholder="搜尋店家名稱、優惠關鍵字..." 
+                           class="w-full pl-10 pr-4 py-1.5 border border-sky-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-400 text-sm bg-sky-50/30">
+                </div>
+            </div>
+
+            <!-- 區域分頁籤 -->
+            <div class="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
+                <button onclick="filterLocation('ALL')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-sky-500 text-white shadow-sm">全部店家</button>
+                <button onclick="filterLocation('新光路一段')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-sky-100 hover:bg-sky-50">新光路一段</button>
+                <button onclick="filterLocation('大門左轉')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-sky-100 hover:bg-sky-50">大門左轉</button>
+                <button onclick="filterLocation('大門右轉')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-sky-100 hover:bg-sky-50">大門右轉</button>
+                <button onclick="filterLocation('ㄆㄨㄣ街')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-sky-100 hover:bg-sky-50">ㄆㄨㄣ街</button>
+                <button onclick="filterLocation('後山')" class="tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-sky-100 hover:bg-sky-50">後山</button>
+            </div>
+
+            <!-- 店家卡片列表 -->
+            <div id="storeGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <!-- 2. 地圖視圖區域 (Map View) -->
+        <div id="mapViewSection" class="hidden space-y-4">
+            <div class="bg-sky-100/70 border border-sky-200 p-3 rounded-xl flex justify-between items-center text-xs text-sky-900">
+                <span><i class="fa-solid fa-map-marked-alt text-sky-600 mr-1"></i> 點擊地圖上的地標即可查看真實位置與資管系專屬優惠！</span>
+            </div>
+        
+            <div class="w-full h-[600px] rounded-2xl overflow-hidden shadow-md border border-sky-100">
+                <iframe 
+                    src="https://www.google.com/maps/d/embed?mid=19SNNMSp_0NhiVM00-DYnxs1RSk4gOAs&ehbc=2E312F"
+                    width="100%" 
+                    height="100%" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy">
+                </iframe>
+            </div>
+        </div>
+    </main>
+
+    <!-- 3. 詳細資訊彈出視窗 (Modal) -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all">
+            <!-- Modal 頂部漸層標頭 -->
+            <div class="bg-gradient-to-r from-indigo-600 to-sky-500 text-white p-6 relative">
+                <button onclick="closeModal()" class="absolute top-5 right-5 text-white/80 hover:text-white text-xl font-bold transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <span id="modalLocationBadge" class="text-[10px] font-bold bg-white/20 text-white px-2.5 py-1 rounded-full backdrop-blur-md inline-block mb-2"></span>
+                <h2 id="modalStoreName" class="text-2xl font-black"></h2>
+            </div>
+
+            <!-- Modal 詳細內容 body -->
+            <div class="p-6 space-y-5 text-slate-700">
+                <!-- 專屬優惠 -->
+                <div>
+                    <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs mb-1.5">
+                        <i class="fa-solid fa-gift"></i> 資管系專屬優惠
+                    </div>
+                    <div id="modalDiscount" class="bg-amber-50 border border-amber-200 text-amber-900 font-bold p-3 rounded-xl text-sm inline-block w-full"></div>
+                </div>
+
+                <!-- 營業時間 -->
+                <div>
+                    <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs mb-1">
+                        <i class="fa-regular fa-clock"></i> 營業時間
+                    </div>
+                    <p id="modalHours" class="text-xs text-slate-600 pl-5"></p>
+                </div>
+
+                <!-- 地點區域 / 地址 -->
+                <div>
+                    <div class="flex items-center gap-2 text-indigo-600 font-bold text-xs mb-1">
+                        <i class="fa-solid fa-location-dot"></i> 地點區域與地址
+                    </div>
+                    <p id="modalAddress" class="text-xs text-slate-600 pl-5"></p>
+                </div>
+
+                <!-- Google 地圖導航按鈕 -->
+                <div class="pt-1">
+                    <a id="modalNavBtn" href="#" target="_blank" class="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-bold hover:underline">
+                        <i class="fa-solid fa-location-arrow"></i> 開啟 Google 地圖單獨導航
+                    </a>
+                </div>
+            </div>
+
+            <!-- Modal 底部關閉按鈕 -->
+            <div class="bg-slate-50 px-6 py-3.5 border-t border-slate-100 flex justify-end">
+                <button onclick="closeModal()" class="px-5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-xl transition">
+                    關閉
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 16 家特約商店完整資料（包含詳細地址與地圖連結）
+        const defaultStores = [
+            { id: 1, name: "Mr. Light 輕食先生", location: "新光路一段", address: "台北市文山區新光路一段 24 號（政治大學周邊商圈）", discount: "點餐後加 10 元可加價購飲料（原價 39 元）", hours: "週一至週日 11:00–20:00" },
+            { id: 2, name: "里克德義廚房", location: "新光路一段", address: "台北市文山區新光路一段 22 號", discount: "主餐折 10 元", hours: "週二至週五 11:30–14:30、17:00–20:30" },
+            { id: 3, name: "小靖子可麗餅", location: "新光路一段", address: "政治大學周邊商圈（新光路一段）", discount: "一個折 5 元", hours: "週一至週五 14:00–20:00（週六、日公休）" },
+            { id: 4, name: "政大茶亭", location: "大門左轉", address: "台北市文山區指南路二段 41 號", discount: "點冰沙送珍珠", hours: "週一至週日 10:20–21:30" },
+            { id: 5, name: "Come See Pizza", location: "大門左轉", address: "台北市文山區指南路二段 61 號", discount: "滿 1,000 元打 95 折，滿 3,000 元打 9 折", hours: "週一、週三至週日 11:30–20:30" },
+            { id: 6, name: "大隻佬 食堂", location: "大門左轉", address: "台北市文山區指南路二段 119 號", discount: "結帳 95 折", hours: "週一至週日 11:00–23:00" },
+            { id: 7, name: "提洛斯義式廚房", location: "大門右轉", address: "台北市文山區指南路二段 16 號", discount: "內用全品項折 5 元（烤餅例外）", hours: "週一至週日 11:30–14:00、16:30–20:00" },
+            { id: 8, name: "華越美食", location: "大門右轉", address: "台北市文山區指南路二段 32 號", discount: "折 5 元", hours: "週一至週六 11:00–14:00、17:00–20:00" },
+            { id: 9, name: "富美豚骨麻辣燙-政大店", location: "大門右轉", address: "台北市文山區指南路二段 48 號", discount: "滿 150 元送 10-30 元飲料", hours: "週一至週五 11:30–15:00、16:30–20:30" },
+            { id: 10, name: "血盅紅 台北政大", location: "ㄆㄨㄣ街", address: "台北市文山區指南路二段 45 巷 5 號", discount: "點鍋類/鍋燒送兩片肉", hours: "週一至週五 11:00–20:00" },
+            { id: 11, name: "Warong Kita 珍妹麵店", location: "ㄆㄨㄣ街", address: "台北市文山區指南路二段 45 巷 7 號", discount: "滿 100 元以上折 5 元", hours: "週一至週五 11:00–14:00、16:30–20:00" },
+            { id: 12, name: "原丼力", location: "ㄆㄨㄣ街", address: "台北市文山區指南路二段 45 巷 2-1 號", discount: "全品項折 5 元", hours: "週一至週五 11:00–14:00、16:30–19:30" },
+            { id: 13, name: "飛捷廣告印刷有限公司", location: "ㄆㄨㄣ街", address: "台北市文山區指南路二段 45 巷 1 號", discount: "消費享 6 折", hours: "週一至週五 09:00–21:00" },
+            { id: 14, name: "匠記日式食堂", location: "後山", address: "台北市文山區指南路三段 12 號", discount: "內用滿 100 元送 15 元小料", hours: "週一至週五、週日 17:00–00:00" },
+            { id: 15, name: "嘗香聚", location: "後山", address: "台北市文山區指南路三段 2 號", discount: "滿 100 元送小杯飲料", hours: "19:00–10:00" },
+            { id: 16, name: "箸拉麵", location: "後山", address: "台北市文山區指南路三段 6 號", discount: "免費加一球麵", hours: "11:30–14:30、17:30–20:30" }
+        ];
+
+        let selectedLocation = 'ALL';
+
+        function renderStores() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const grid = document.getElementById('storeGrid');
+            grid.innerHTML = '';
+            
+            const filtered = defaultStores.filter(s => {
+                const matchesLoc = selectedLocation === 'ALL' || s.location === selectedLocation;
+                const matchesSearch = s.name.toLowerCase().includes(query) || s.discount.toLowerCase().includes(query);
+                return matchesLoc && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-8 text-slate-400 text-sm">沒有找到符合條件的店家</div>`;
+                return;
+            }
+
+            filtered.forEach(store => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-2xl shadow-sm hover:shadow-md transition border border-sky-100 flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start">
+                            <span class="text-[10px] font-bold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-md">${store.location}</span>
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-base mt-2">${store.name}</h3>
+                        <p class="text-xs text-sky-900 font-bold bg-amber-300/30 border border-amber-300/50 p-2.5 rounded-xl mt-2.5 inline-block w-full">
+                            <i class="fa-solid fa-gift text-amber-500 mr-1"></i>${store.discount}
+                        </p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-xs text-slate-500 flex justify-between items-center">
+                        <span class="truncate max-w-[170px]"><i class="fa-regular fa-clock text-sky-500 mr-1"></i>${store.hours}</span>
+                        <button onclick="openModal(${store.id})" class="text-indigo-600 font-bold hover:text-indigo-800 transition shrink-0">
+                            詳情 <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 開啟 Modal 視圖並載入該店家詳細內容
+        function openModal(id) {
+            const store = defaultStores.find(s => s.id === id);
+            if (!store) return;
+
+            document.getElementById('modalLocationBadge').innerText = store.location;
+            document.getElementById('modalStoreName').innerText = store.name;
+            document.getElementById('modalDiscount').innerText = store.discount;
+            document.getElementById('modalHours').innerText = store.hours;
+            document.getElementById('modalAddress').innerText = store.address;
+            
+            // 自動生成 Google Map 搜尋導航連結
+            const mapSearchUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(store.name + ' ' + store.address)}`;
+            document.getElementById('modalNavBtn').href = mapSearchUrl;
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        // 關閉 Modal
+        function closeModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        function filterLocation(loc) {
+            selectedLocation = loc;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                if (btn.innerText.includes(loc) || (loc === 'ALL' && btn.innerText.includes('全部'))) {
+                    btn.className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-sky-500 text-white shadow-sm";
+                } else {
+                    btn.className = "tab-btn px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap bg-white text-slate-600 border border-sky-100 hover:bg-sky-50";
+                }
+            });
+            renderStores();
+        }
+
+        function switchView(view) {
+            const listSec = document.getElementById('listViewSection');
+            const mapSec = document.getElementById('mapViewSection');
+            const listBtn = document.getElementById('viewListBtn');
+            const mapBtn = document.getElementById('viewMapBtn');
+
+            if (view === 'list') {
+                listSec.classList.remove('hidden');
+                mapSec.classList.add('hidden');
+                listBtn.className = "px-3 py-1.5 rounded-lg bg-amber-400 text-slate-900 shadow transition";
+                mapBtn.className = "px-3 py-1.5 rounded-lg text-white hover:bg-white/10 transition";
+            } else {
+                listSec.classList.add('hidden');
+                mapSec.classList.remove('hidden');
+                mapBtn.className = "px-3 py-1.5 rounded-lg bg-amber-400 text-slate-900 shadow transition";
+                listBtn.className = "px-3 py-1.5 rounded-lg text-white hover:bg-white/10 transition";
+            }
+        }
+
+        // 點擊背景空白處亦可關閉 Modal
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // 頁面初始化
+        window.onload = renderStores;
+    </script>
+</body>
+</html>
