@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinTech Lab - 競賽與專案成果管理系統</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 font-sans text-slate-800">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between p-4 shrink-0">
+            <div>
+                <div class="flex items-center gap-3 px-2 py-4 border-b border-slate-800">
+                    <div class="bg-indigo-600 p-2 rounded-lg"><i class="fa-solid fa-rocket text-xl"></i></div>
+                    <div>
+                        <h1 class="font-bold text-base leading-tight">FinTech Lab</h1>
+                        <p class="text-xs text-slate-400">競賽與專案戰略中心</p>
+                    </div>
+                </div>
+                
+                <nav class="mt-6 space-y-1">
+                    <button onclick="switchTab('hub')" id="nav-hub" class="nav-btn active w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors bg-indigo-600 text-white">
+                        <i class="fa-solid fa-trophy w-5"></i> 競賽大廳與採集
+                    </button>
+                    <button onclick="switchTab('pipeline')" id="nav-pipeline" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-kanban w-5"></i> 幹部專案管線
+                    </button>
+                    <button onclick="switchTab('copilot')" id="nav-copilot" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-robot w-5"></i> AI 競賽副駕駛
+                    </button>
+                    <button onclick="switchTab('knowledge')" id="nav-knowledge" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                        <i class="fa-solid fa-book-bookmark w-5"></i> 賽後復盤與智庫
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Profile Badge -->
+            <div class="border-t border-slate-800 pt-4 px-2">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-indigo-500 flex items-center justify-center font-bold">學</div>
+                    <div>
+                        <p class="text-sm font-semibold">陳專案 (PM)</p>
+                        <p class="text-xs text-amber-400"><i class="fa-solid fa-award"></i> Pitch 達人 (EXP 1250)</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto p-8">
+            
+            <!-- 1. 競賽大廳與情報採集模組 -->
+            <section id="tab-hub" class="tab-content space-y-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">競賽情報大廳</h2>
+                        <p class="text-sm text-slate-500">網址自動爬取與 AI 情報結構化整理</p>
+                    </div>
+                    <button onclick="openIngestModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm transition">
+                        <i class="fa-solid fa-link"></i> 輸入網址 AI 自動採集
+                    </button>
+                </div>
+
+                <!-- Competition Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="competition-list">
+                    <!-- Default Competition Item -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="bg-indigo-50 text-indigo-600 text-xs font-semibold px-2.5 py-1 rounded-full">FinTech 創新</span>
+                            <span class="text-xs font-semibold text-rose-500"><i class="fa-regular fa-clock"></i> 剩餘 12 天</span>
+                        </div>
+                        <h3 class="font-bold text-lg text-slate-900 mb-1">2026 金融科技數據大賽</h3>
+                        <p class="text-xs text-slate-500 mb-3">主辦單位：玉山銀行 / 金融總會</p>
+                        <div class="text-xs text-slate-600 space-y-1 mb-4 bg-slate-50 p-3 rounded-lg">
+                            <p><strong>主題：</strong> GenAI 智能理財健檢、永續 ESG 評分</p>
+                            <p><strong>對象：</strong> 全國大專院校在校生（2-5人/組）</p>
+                            <p><strong>總獎金：</strong> NT$ 500,000</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-2 rounded-lg font-medium transition">組隊報名</button>
+                            <button class="px-3 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs rounded-lg transition"><i class="fa-regular fa-bookmark"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. 幹部專案管線看板 -->
+            <section id="tab-pipeline" class="tab-content space-y-6 hidden">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">幹部競賽管線看板</h2>
+                        <p class="text-sm text-slate-500">掌握全社團參賽隊伍進度與自動催繳狀態</p>
+                    </div>
+                    <button class="bg-slate-900 text-white text-xs px-3 py-2 rounded-lg font-medium hover:bg-slate-800">
+                        <i class="fa-solid fa-file-export mr-1"></i> 一鍵匯出實驗室戰報
+                    </button>
+                </div>
+
+                <!-- Kanban Board -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-100 p-3 rounded-xl min-h-[500px]">
+                        <div class="flex justify-between items-center mb-3 px-1">
+                            <span class="font-bold text-xs text-slate-700">1. 招募組隊中 (1)</span>
+                            <i class="fa-solid fa-ellipsis text-slate-400 text-xs"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 text-xs">
+                                <span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold">缺前端</span>
+                                <h4 class="font-bold text-slate-800 mt-2">AI 智能理財助手</h4>
+                                <p class="text-slate-400 mt-1">隊長：林小明 (商管3)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-100 p-3 rounded-xl min-h-[500px]">
+                        <div class="flex justify-between items-center mb-3 px-1">
+                            <span class="font-bold text-xs text-slate-700">2. 備賽衝刺中 (1)</span>
+                            <i class="fa-solid fa-ellipsis text-slate-400 text-xs"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="bg-white p-3 rounded-lg shadow-sm border-l-4 border-indigo-500 text-xs">
+                                <div class="flex justify-between text-[10px] text-slate-400 mb-1">
+                                    <span>初賽交件：10/15</span>
+                                    <span class="text-indigo-600 font-bold">W-2 階段</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800">區塊鏈供應鏈金融</h4>
+                                <p class="text-slate-500 mt-1">隊長：陳專案 | 導師：張教授</p>
+                                <div class="mt-3 bg-slate-50 p-2 rounded flex justify-between items-center text-[10px] text-emerald-600 font-medium">
+                                    <span><i class="fa-brands fa-discord"></i> Bot 催繳 status: OK</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-100 p-3 rounded-xl min-h-[500px]">
+                        <div class="flex justify-between items-center mb-3 px-1">
+                            <span class="font-bold text-xs text-slate-700">3. 決賽/等待公佈 (1)</span>
+                            <i class="fa-solid fa-ellipsis text-slate-400 text-xs"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 text-xs">
+                                <h4 class="font-bold text-slate-800">ESG 企業防綠洗 AI</h4>
+                                <p class="text-slate-400 mt-1">隊長：黃姿穎 (資管4)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-100 p-3 rounded-xl min-h-[500px]">
+                        <div class="flex justify-between items-center mb-3 px-1">
+                            <span class="font-bold text-xs text-slate-700">4. 已復盤歸檔 (1)</span>
+                            <i class="fa-solid fa-ellipsis text-slate-400 text-xs"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="bg-white p-3 rounded-lg shadow-sm border border-emerald-300 bg-emerald-50/30 text-xs">
+                                <div class="flex justify-between text-[10px] text-emerald-700 font-bold mb-1">
+                                    <span>🏆 獲得全國二獎</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800">綠色消費回饋 API</h4>
+                                <p class="text-slate-500 mt-1">KSS 復盤：已完成 (解鎖補助)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. AI 競賽副駕駛 -->
+            <section id="tab-copilot" class="tab-content space-y-6 hidden">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">AI 競賽副駕駛 (AI Copilot)</h2>
+                    <p class="text-sm text-slate-500">對抗式 AI 模擬評審與企劃結構 Gap 檢查</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-800 text-base">專案企劃簡報檢測</h3>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">選擇擬參加的競賽</label>
+                            <select class="w-full text-xs p-2.5 border rounded-lg bg-slate-50">
+                                <option>2026 金融科技數據大賽</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">上傳簡報草稿 (PDF)</label>
+                            <div class="border-2 border-dashed border-slate-200 rounded-lg p-6 text-center hover:bg-slate-50 cursor-pointer">
+                                <i class="fa-solid fa-cloud-arrow-up text-slate-400 text-2xl mb-2"></i>
+                                <p class="text-xs text-slate-500">點擊上傳 Proposal 或 Deck Draft</p>
+                            </div>
+                        </div>
+                        <button onclick="runAiAnalysis()" class="w-full bg-indigo-600 text-white text-xs py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition">
+                            <i class="fa-solid fa-microchip mr-1"></i> 開始 AI 評審模擬演練
+                        </button>
+                    </div>
+
+                    <div class="lg:col-span-2 bg-slate-900 text-slate-100 p-5 rounded-xl flex flex-col justify-between min-h-[400px]">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                                <span class="text-xs font-semibold text-indigo-400 flex items-center gap-2">
+                                    <i class="fa-solid fa-robot"></i> 嚴苛評審模式 (Financial Risk Expert)
+                                </span>
+                                <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded">模擬提問 Q&A</span>
+                            </div>
+                            <div id="ai-chat-box" class="space-y-4 text-xs">
+                                <div class="bg-slate-800 p-3 rounded-lg border border-slate-700">
+                                    <p class="text-indigo-300 font-bold mb-1">AI 評審問句 #1：</p>
+                                    <p class="text-slate-200">「你們提出了基於 LLM 的客服模型，但金融業最看重法規合規性與資料隱私。請問你們的架構如何確保客戶財務資料不被傳輸到外部第三方模型，符合金管會的資安規範？」</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-800 flex gap-2">
+                            <input type="text" placeholder="輸入團隊回答進行答辯演練..." class="flex-1 bg-slate-800 border border-slate-700 text-xs px-3 py-2 rounded-lg text-white focus:outline-none focus:border-indigo-500">
+                            <button class="bg-indigo-600 text-xs px-4 py-2 rounded-lg font-medium hover:bg-indigo-500">傳送答辯</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. 賽後復盤與智庫 -->
+            <section id="tab-knowledge" class="tab-content space-y-6 hidden">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-900">賽後復盤與傳承智庫</h2>
+                    <p class="text-sm text-slate-500">KSS 復盤紀錄與歷屆評審 Q&A 題庫</p>
+                </div>
+
+                <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bold text-slate-900">歷屆獲獎復盤與評審 Q&A 庫</h3>
+                        <span class="text-xs bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full font-medium">已傳承 14 個專案資產</span>
+                    </div>
+
+                    <div class="space-y-4 text-xs">
+                        <div class="border border-slate-100 rounded-lg p-4 bg-slate-50 hover:bg-white hover:border-slate-300 transition">
+                            <div class="flex justify-between font-bold text-slate-800 text-sm mb-2">
+                                <span>【2025 全國 FinTech 創新大賽】綠色消費回饋系統 (二獎)</span>
+                                <span class="text-xs font-normal text-slate-400">隊長：張學長</span>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3 mb-3">
+                                <div class="bg-emerald-50/60 p-2.5 rounded border border-emerald-100">
+                                    <span class="font-bold text-emerald-800 block mb-1">Keep (保持點)</span>
+                                    <p class="text-slate-600">Pitch 簡報以情境劇開場極具吸引力，商業模式圖表化清晰。</p>
+                                </div>
+                                <div class="bg-blue-50/60 p-2.5 rounded border border-blue-100">
+                                    <span class="font-bold text-blue-800 block mb-1">Start (下次嘗試)</span>
+                                    <p class="text-slate-600">決賽前一天應先針對評審背景進行 Keynote 側重點微調。</p>
+                                </div>
+                                <div class="bg-rose-50/60 p-2.5 rounded border border-rose-100">
+                                    <span class="font-bold text-rose-800 block mb-1">Stop (應停止)</span>
+                                    <p class="text-slate-600">花太長時間修正 UI 亮色系配色，忽略了核心演算法的複雜度說明。</p>
+                                </div>
+                            </div>
+                            <div class="bg-slate-900 text-slate-200 p-3 rounded">
+                                <span class="text-amber-400 font-bold block mb-1"><i class="fa-solid fa-circle-question"></i> 評審關鍵提問 (Judge Q&A)：</span>
+                                <p class="mb-1"><strong>問：</strong>「你們特有的積分交換清算機制，如何防範刷單套利？」</p>
+                                <p class="text-slate-400"><strong>精準回答：</strong>「透過帳戶行為圖形演算法進行即時風控，設有每日額度上限，鎖定異常頻率交易...」</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal: URL 輸入 + 網頁爬蟲 & AI Parsing 模擬 -->
+    <div id="ingest-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-lg shadow-xl space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <i class="fa-solid fa-globe text-indigo-600"></i> 輸入競賽網址自動採集
+                </h3>
+                <button onclick="closeIngestModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">競賽網址 (支持獎金獵人、IG/Threads 貼文、官網 URL)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-link text-xs"></i>
+                        </span>
+                        <input type="url" id="target-url-input" placeholder="https://www.bhuntr.com/tw/competitions/..." class="w-full text-xs pl-8 pr-3 py-2.5 border rounded-lg bg-slate-50 focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Scraping Progress State (Hidden by default) -->
+                <div id="scraping-progress" class="hidden bg-indigo-50 border border-indigo-100 p-3 rounded-lg text-xs space-y-2">
+                    <div class="flex items-center gap-2 text-indigo-700 font-semibold" id="progress-step">
+                        <i class="fa-solid fa-spinner animate-spin"></i> 1/2 正在爬取網頁 HTML 與內文...
+                    </div>
+                    <p class="text-slate-500 text-[11px]" id="progress-detail">發送 HTTP Request 至目標伺服器...</p>
+                </div>
+            </div>
+
+            <button onclick="simulateUrlScrapingAndParsing()" id="start-parse-btn" class="w-full bg-indigo-600 text-white text-xs py-2.5 rounded-lg font-medium hover:bg-indigo-700 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> 爬取網頁並執行 AI 結構化整理
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Tab Switcher
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('bg-indigo-600', 'text-white');
+                el.classList.add('text-slate-400');
+            });
+
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabName}`);
+            activeNav.classList.add('bg-indigo-600', 'text-white');
+            activeNav.classList.remove('text-slate-400');
+        }
+
+        // Modal Handler
+        function openIngestModal() {
+            document.getElementById('ingest-modal').classList.remove('hidden');
+        }
+        function closeIngestModal() {
+            document.getElementById('ingest-modal').classList.add('hidden');
+            // Reset Progress State
+            document.getElementById('scraping-progress').classList.add('hidden');
+            document.getElementById('start-parse-btn').disabled = false;
+        }
+
+        // Simulated Crawler + LLM Pipeline
+        function simulateUrlScrapingAndParsing() {
+            const urlInput = document.getElementById('target-url-input').value;
+            if(!urlInput.trim()) {
+                alert('請輸入有效的競賽網址！');
+                return;
+            }
+
+            const progressBox = document.getElementById('scraping-progress');
+            const progressStep = document.getElementById('progress-step');
+            const progressDetail = document.getElementById('progress-detail');
+            const startBtn = document.getElementById('start-parse-btn');
+
+            // UI Loading state
+            progressBox.classList.remove('hidden');
+            startBtn.disabled = true;
+
+            // Step 1: Scrape
+            progressStep.innerHTML = `<i class="fa-solid fa-spinner animate-spin text-indigo-600"></i> 1/2 正在爬取網頁資訊...`;
+            progressDetail.innerText = `發送 Request 至 ${urlInput.substring(0, 30)}... 並解析 DOM 節點`;
+
+            // Step 2: LLM Parsing
+            setTimeout(() => {
+                progressStep.innerHTML = `<i class="fa-solid fa-brain animate-pulse text-indigo-600"></i> 2/2 LLM 正在整理與格式化內容...`;
+                progressDetail.innerText = `提取：競賽名稱、主辦單位、報名時程、比賽規則與獎金`;
+            }, 1500);
+
+            // Step 3: Complete & Render
+            setTimeout(() => {
+                closeIngestModal();
+                
+                // Dynamically insert competition card
+                const competitionList = document.getElementById('competition-list');
+                const newCard = document.createElement('div');
+                newCard.className = "bg-white rounded-xl border border-indigo-200 p-5 shadow-sm hover:shadow-md transition animate-pulse";
+                newCard.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="bg-indigo-50 text-indigo-600 text-xs font-semibold px-2.5 py-1 rounded-full"><i class="fa-solid fa-globe"></i> 網址自動擷取</span>
+                        <span class="text-xs font-semibold text-rose-500"><i class="fa-regular fa-clock"></i> 剩餘 18 天</span>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900 mb-1">【新擷取】2026 全國開放銀行 Open API 創新賽</h3>
+                    <p class="text-xs text-slate-500 mb-3">主辦單位：財金資訊公司 / 政治大學</p>
+                    <div class="text-xs text-slate-600 space-y-1 mb-4 bg-slate-50 p-3 rounded-lg">
+                        <p><strong>主題：</strong> 跨行支付應用、TSP 業者生態圈建模</p>
+                        <p><strong>對象：</strong> 全國大專院校在校生及碩博士生</p>
+                        <p><strong>總獎金：</strong> NT$ 350,000</p>
+                        <p class="text-[10px] text-slate-400 truncate mt-1">來源：${urlInput}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs py-2 rounded-lg font-medium transition">組隊報名</button>
+                    </div>
+                `;
+                competitionList.prepend(newCard);
+                setTimeout(() => newCard.classList.remove('animate-pulse'), 1000);
+            }, 3200);
+        }
+
+        // AI Simulator
+        function runAiAnalysis() {
+            const chatBox = document.getElementById('ai-chat-box');
+            chatBox.innerHTML += `
+                <div class="bg-indigo-900/50 p-3 rounded-lg border border-indigo-700 text-slate-200 mt-2">
+                    <p class="text-emerald-300 font-bold mb-1">AI 評審問句 #2 (結構缺陷提示)：</p>
+                    <p>「審視企劃草稿發現：Lack of Financial Projection。請補強獲利模型試算與未來 3 年的用戶獲客成本 (CAC) 預估。」</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
